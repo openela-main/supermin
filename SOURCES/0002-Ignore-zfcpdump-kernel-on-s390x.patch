@@ -1,0 +1,29 @@
+From d5e5a787b53490c5503a598721d7b34b7d30badd Mon Sep 17 00:00:00 2001
+From: "Richard W.M. Jones" <rjones@redhat.com>
+Date: Mon, 29 Nov 2021 14:40:15 +0000
+Subject: [PATCH] Ignore zfcpdump kernel on s390x
+
+Reported-by: Sebastian Mitterle
+Thanks: Cornelia Huck
+Fixes: https://bugzilla.redhat.com/show_bug.cgi?id=2027375
+(cherry picked from commit 9fbe476d4df0b01568d3668e6121cae7c779c8c7)
+---
+ src/format_ext2_kernel.ml | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/format_ext2_kernel.ml b/src/format_ext2_kernel.ml
+index 3be4413..ea69ade 100644
+--- a/src/format_ext2_kernel.ml
++++ b/src/format_ext2_kernel.ml
+@@ -157,6 +157,8 @@ and kernel_filter patterns is_arm all_files =
+       ) all_files in
+   let files =
+     List.filter (fun filename -> find filename "xen" = -1) files in
++  let files =
++    List.filter (fun filename -> find filename "zfcpdump" = -1) files in
+   let files =
+     if not is_arm then files
+     else (
+-- 
+2.31.1
+
