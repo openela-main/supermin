@@ -1,0 +1,33 @@
+From b2565eb1ddc43d8ff6e3406f11004ff42ab108aa Mon Sep 17 00:00:00 2001
+From: "Richard W.M. Jones" <rjones@redhat.com>
+Date: Mon, 28 Feb 2022 16:54:33 -0500
+Subject: [PATCH] Ignore debug kernels
+
+On RHEL 8.2 with RT, these kernels are not bootable.  The kernel in
+that instance was called
+/lib/modules/4.18.0-193.70.1.rt13.120.el8_2.x86_64+debug/vmlinuz
+installed from the package
+kernel-rt-debug-core-4.18.0-193.70.1.rt13.120.el8_2.x86_64
+
+Fixes: https://bugzilla.redhat.com/show_bug.cgi?id=2051332
+(cherry picked from commit c44d685e662e001f5fe70f0a98d0964cb561e1ec)
+---
+ src/format_ext2_kernel.ml | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/format_ext2_kernel.ml b/src/format_ext2_kernel.ml
+index 79d636b..c592703 100644
+--- a/src/format_ext2_kernel.ml
++++ b/src/format_ext2_kernel.ml
+@@ -167,6 +167,8 @@ and ignore_unbootable_kernels host_cpu files =
+     List.filter (fun filename -> find filename "xen" = -1) files in
+   let files =
+     List.filter (fun filename -> find filename "zfcpdump" = -1) files in
++  let files =
++    List.filter (fun filename -> find filename "+debug" = -1) files in
+   let files =
+     if not is_arm then files
+     else (
+-- 
+2.31.1
+
