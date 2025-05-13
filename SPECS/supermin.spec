@@ -1,4 +1,5 @@
-%undefine _package_note_flags
+# OCaml packages not built on i686 since OCaml 5 / Fedora 39.
+ExcludeArch: %{ix86}
 
 # On platforms and architectures that support it, the default is
 # ‘--with dietlibc’.
@@ -22,6 +23,12 @@
 %endif
 %endif
 
+%if 0%{?fedora} > 40 || 0%{?rhel} > 10
+%bcond_without dnf5
+%else
+%bcond_with dnf5
+%endif
+
 # Whether we should verify tarball signature with GPGv2.
 %global verify_tarball_signature 1
 
@@ -30,9 +37,9 @@
 
 Summary:       Tool for creating supermin appliances
 Name:          supermin
-Version:       5.3.3
+Version:       5.3.5
 Release:       1%{?dist}
-License:       GPLv2+
+License:       GPL-2.0-or-later
 
 ExclusiveArch: %{kernel_arches}
 %if 0%{?rhel}
@@ -53,8 +60,12 @@ BuildRequires: /usr/bin/pod2man
 BuildRequires: /usr/bin/pod2html
 BuildRequires: rpm
 BuildRequires: rpm-devel
+%if %{with dnf5}
+BuildRequires: dnf5
+%else
 BuildRequires: dnf
 BuildRequires: dnf-plugins-core
+%endif
 BuildRequires: /usr/sbin/mke2fs
 BuildRequires: e2fsprogs-devel
 BuildRequires: findutils
@@ -121,8 +132,12 @@ Requires:      %{name} = %{version}-%{release}
 Requires:      rpm-build
 
 # Dependencies needed for supermin --prepare
+%if %{with dnf5}
+Requires:      dnf5
+%else
 Requires:      dnf
 Requires:      dnf-plugins-core
+%endif
 Requires:      findutils
 
 
@@ -144,7 +159,11 @@ supermin appliances.
 
 %build
 autoreconf -fi
-%configure --disable-network-tests
+# Setting DNF is temporarily required for Rawhide.  We should be able
+# to remove this later.  See:
+# https://bugzilla.redhat.com/show_bug.cgi?id=2209412
+# https://fedoraproject.org/wiki/Changes/ReplaceDnfWithDnf5
+%configure %{?with_dnf5:DNF=%{_bindir}/dnf5} --disable-network-tests
 
 %if %{with dietlibc}
 make -C init CC="diet gcc"
@@ -187,6 +206,10 @@ make check || {
 
 
 %changelog
+* Mon Sep 02 2024 Richard W.M. Jones <rjones@redhat.com> - 5.3.5-1
+- Rebase to Fedora Rawhide
+  resolves: RHEL-56805
+
 * Tue Oct 18 2022 Richard W.M. Jones <rjones@redhat.com> - 5.3.3-1
 - Rebase to Fedora Rawhide
   resolves: rhbz#2135767
